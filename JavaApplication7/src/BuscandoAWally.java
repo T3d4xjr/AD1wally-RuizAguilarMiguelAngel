@@ -72,7 +72,7 @@ public class BuscandoAWally {
             }
         }
         return null; // No se encontró a Wally
-    }
+    } 
 
     private static boolean coincide(BufferedImage imagenNivel, BufferedImage imagenWally, int startX, int startY) {
         int anchoWally = imagenWally.getWidth();
@@ -92,36 +92,45 @@ public class BuscandoAWally {
     }
 
     private static BufferedImage aplicarEfectos(BufferedImage imagenNivel, BufferedImage imagenWally, Point ubicacionWally) {
-        BufferedImage imagenProcesada = new BufferedImage(imagenNivel.getWidth(), imagenNivel.getHeight(), BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g = imagenProcesada.createGraphics();
-        g.drawImage(imagenNivel, 0, 0, null);
+    
+    
+    // Crear una imagen procesada con las mismas dimensiones que la imagen original
+    BufferedImage imagenProcesada = new BufferedImage(imagenNivel.getWidth(), imagenNivel.getHeight(), BufferedImage.TYPE_INT_ARGB);
 
-        // Aplicar efecto blanco y negro y reducir brillo
+    // Recorrer cada píxel de la imagen
+    for (int x = 0; x < imagenNivel.getWidth(); x++) {
         for (int y = 0; y < imagenNivel.getHeight(); y++) {
-            for (int x = 0; x < imagenNivel.getWidth(); x++) {
-                // Verifica si el píxel está fuera de la zona de Wally
-                if (x < ubicacionWally.x || x >= ubicacionWally.x + imagenWally.getWidth() ||
-                        y < ubicacionWally.y || y >= ubicacionWally.y + imagenWally.getHeight()) {
-                    int rgb = imagenNivel.getRGB(x, y);
-
-                    // Convertir a escala de grises con reducción de brillo
-                    int rojo = (rgb >> 16) & 0xff;
-                    int verde = (rgb >> 8) & 0xff;
-                    int azul = rgb & 0xff;
-                    int gris = (int) (0.3 * rojo + 0.5 * verde + 0.2 * azul);
-                    gris = Math.max(gris - 50, 0);  // Reduce el brillo
-
-                    // Establece el nuevo color en la imagen procesada
-                    int nuevoColor = (0xff << 24) | (gris << 16) | (gris << 8) | gris;
-                    imagenProcesada.setRGB(x, y, nuevoColor);
-                }
+            // Verifica si el píxel está fuera de la zona de Wally
+            if (x < ubicacionWally.x || x >= ubicacionWally.x + imagenWally.getWidth() ||
+                    y < ubicacionWally.y || y >= ubicacionWally.y + imagenWally.getHeight()) {
+                
+                // Obtener el color del píxel
+                int rgb = imagenNivel.getRGB(x, y);
+                Color pixelColor = new Color(rgb);
+                
+                // Extraer los componentes de color
+                int red = pixelColor.getRed();
+                int green = pixelColor.getGreen();
+                int blue = pixelColor.getBlue();
+                
+                // Convertir a escala de grises
+                int gray = (int) ((red * 0.3) + (green * 0.5) + (blue * 0.2));
+                
+                // Establecer el nuevo color en la imagen procesada
+                Color grayColor = new Color(gray, gray, gray);
+                imagenProcesada.setRGB(x, y, grayColor.getRGB());
+            } else {
+                // Copiar el color original de Wally
+                imagenProcesada.setRGB(x, y, imagenNivel.getRGB(x, y));
             }
         }
+    }
 
-        // Colocar a Wally en su posición original
-        g.drawImage(imagenWally, ubicacionWally.x, ubicacionWally.y, null);
-        g.dispose();
+    // Colocar a Wally en su posición original
+    Graphics2D g = imagenProcesada.createGraphics();
+    g.drawImage(imagenWally, ubicacionWally.x, ubicacionWally.y, null);
+    g.dispose();
 
-        return imagenProcesada;
+    return imagenProcesada;
     }
 }
